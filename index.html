@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小豆邀请码聚合</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#222;max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:8px 0 4px}
+.sub{color:#666;font-size:13px;margin-bottom:12px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.stat{flex:1;min-width:140px;background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:12px}
+.stat b{font-size:20px;display:block}
+.stat span{color:#666;font-size:12px}
+.controls{display:flex;gap:8px;align-items:center;margin:12px 0}
+button{cursor:pointer;border:1px solid #ddd;background:#fff;border-radius:8px;padding:8px 14px;font-size:14px}
+button.primary{background:#111;color:#fff;border-color:#111}
+#countdown{color:#666;font-size:13px}
+#filtered{color:#999;font-size:13px}
+.card{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin-bottom:10px}
+.code{font-family:ui-monospace,Menlo,monospace;font-size:24px;font-weight:700;letter-spacing:2px}
+.code.used{color:#999;text-decoration:line-through}
+.meta{color:#666;font-size:13px;margin-top:6px;line-height:1.7}
+.badge{display:inline-block;font-size:12px;border-radius:20px;padding:2px 10px;margin-left:8px}
+.badge.ok{background:#e6f7e6;color:#137a13}
+.badge.used{background:#eee;color:#888}
+.badge.new{background:#ffe0e0;color:#c00;animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.5}}
+.copy{float:right}
+section{background:#fff;border:1px solid #e5e5e5;border-radius:10px;padding:14px;margin:16px 0}
+section h2{font-size:16px;margin-bottom:10px}
+section p,section li{font-size:14px;line-height:1.8;color:#444}
+.warn{background:#fff8d6;border-color:#f0d96a}
+.warn b{color:#a00}
+.searchrow{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0}
+.searchrow:last-child{border-bottom:0}
+.searchrow span{flex:1}
+small{color:#999}
+</style>
+</head>
+<body>
+<h1>小豆邀请码聚合</h1>
+<p class="sub">社区收集，非官方 · 一码只能用一次，复制后请尽快在小豆 App 里使用</p>
+<div class="stats">
+  <div class="stat"><b id="updated">—</b><span>最后更新</span></div>
+  <div class="stat"><b id="total">—</b><span>当前收录</span></div>
+  <div class="stat"><b id="available">—</b><span>可能可用</span></div>
+</div>
+<div class="controls">
+  <button class="primary" onclick="load(true)">立即刷新</button>
+  <span id="countdown">下次刷新 20 秒</span>
+  <span id="filtered"></span>
+</div>
+<div id="list"></div>
+<section>
+  <h2>去各平台自己搜新码</h2>
+  <div id="searches"></div>
+</section>
+<section class="warn">
+  <h2>别付钱买码</h2>
+  <p><b>闲鱼等平台已有人反映买码被骗。</b>还有卖家要求先付押金、激活后把系统里新生成的码返还再转卖的套路。请勿付钱购买邀请码。</p>
+</section>
+<section>
+  <h2>不用邀请码的路径</h2>
+  <p>有人说豆包老号有机会免排队。App Store 搜「小豆 豆包旗下」可以找到小豆 App。打开豆包 App，用已有的豆包老账号登录，点头像进设置，找「邀请好友体验小豆」，若入口还在，可以尝试直接邀请，无需另外的邀请码。</p>
+</section>
+<p><small>数据每 20 秒自动拉取一次 · 状态按原帖回复数推断：回复 0 为可能可用，有回复为已使用，不保证当前仍可用。</small></p>
+<script>
+const BLACKLIST=["OPENAI","CLOUD"];
+const SEARCHES=[
+ {name:"X（推特）",term:"小豆 邀请码",url:"https://x.com/search?q=%E5%B0%8F%E8%B1%86%20%E9%82%80%E8%AF%B7%E7%A0%81&f=live"},
+ {name:"微博",term:"小豆 邀请码",url:"https://s.weibo.com/weibo/%E5%B0%8F%E8%B1%86%20%E9%82%80%E8%AF%B7%E7%A0%81"},
+ {name:"小红书",term:"小豆 邀请码",url:"https://www.xiaohongshu.com/search_result?keyword=%E5%B0%8F%E8%B1%86%E9%82%80%E8%AF%B7%E7%A0%81"},
+ {name:"抖音",term:"小豆 邀请码",url:"https://www.douyin.com/search/%E5%B0%8F%E8%B1%86%E9%82%80%E8%AF%B7%E7%A0%81"},
+ {name:"LINUX DO",term:"小豆 邀请码",url:"https://linux.do/search?q=%E5%B0%8F%E8%B1%86%E9%82%80%E8%AF%B7%E7%A0%81"},
+ {name:"微信",term:"小豆 邀请码",url:""}
+];
+function isValid(code){
+ if(!/^[A-Za-z0-9]{6}$/.test(code)) return false;
+ if(!/[A-Za-z]/.test(code)||!/[0-9]/.test(code)) return false;
+ if(BLACKLIST.includes(code.toUpperCase())) return false;
+ if(/(.)\1\1/.test(code)) return false;
+ let up=code.toUpperCase();
+ for(let i=0;i<4;i++){let s=up.slice(i,i+3); if(/^[A-Z]{3}$/.test(s)) return false; if(/^[0-9]{3}$/.test(s)) return false;}
+ return true;
+}
+function fmt(t){let d=new Date(t);return d.toLocaleString("zh-CN",{hour12:false});}
+function copyText(t,btn){navigator.clipboard&&navigator.clipboard.writeText(t);btn.textContent="已复制";setTimeout(()=>btn.textContent="复制",1500);}
+let seconds=20;
+async function load(manual){
+ try{
+  let res=await fetch("codes.json?t="+Date.now());
+  let data=await res.json();
+  let filtered=0;
+  let valid=data.filter(x=>{let ok=isValid(x.code);if(!ok)filtered++;return ok;});
+  valid.sort((a,b)=>new Date(b.publishedAt)-new Date(a.publishedAt));
+  let avail=valid.filter(x=>x.replies===0);
+  document.getElementById("updated").textContent=valid.length?fmt(valid[0].publishedAt):"—";
+  document.getElementById("total").textContent=valid.length+" 个码";
+  document.getElementById("available").textContent=avail.length+" 个";
+  document.getElementById("filtered").textContent=filtered?("已过滤 "+filtered+" 条不合格"):"";
+  let now=Date.now();
+  document.getElementById("list").innerHTML=valid.map(x=>{
+   let isNew=(now-new Date(x.publishedAt).getTime())<15*60*1000;
+   let used=x.replies>0;
+   return '<div class="card"><button class="copy" onclick="copyText(\''+x.code+'\',this)">复制</button><span class="code'+(used?' used':'')+'">'+x.code+'</span>'+(used?'<span class="badge used">已使用</span>':'<span class="badge ok">可能可用</span>')+(isNew?'<span class="badge new">⚡ 实时新码</span>':'')+'<div class="meta">来自 '+x.platform+' · '+x.author+' · '+fmt(x.publishedAt)+'<br>原帖回复 '+x.replies+' 条'+(x.url?' · <a href="'+x.url+'" target="_blank" rel="noopener">看原帖</a>':'')+'</div></div>';
+  }).join("")||"<p>暂无可用码</p>";
+ }catch(e){document.getElementById("list").innerHTML="<p>加载失败，请点立即刷新重试。</p>";}
+ if(manual)seconds=20;
+}
+document.getElementById("searches").innerHTML=SEARCHES.map(s=>'<div class="searchrow"><span><b>'+s.name+'</b> · '+s.term+'</span><button onclick="copyText(\''+s.term+'\',this)">复制搜索词</button>'+(s.url?'<a href="'+s.url+'" target="_blank" rel="noopener">去搜索</a>':'<small>微信内搜</small>')+'</div>').join("");
+load();
+setInterval(()=>{seconds--;if(seconds<=0){seconds=20;load();}document.getElementById("countdown").textContent="下次刷新 "+seconds+" 秒";},1000);
+</script>
+</body>
+</html>
