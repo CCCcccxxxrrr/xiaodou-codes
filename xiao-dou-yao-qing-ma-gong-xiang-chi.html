@@ -325,7 +325,7 @@
           <label class="flabel" for="donateAcct">你的小红书账号</label>
           <input class="field" id="donateAcct" maxlength="40" placeholder="你的小红书号" autocomplete="off" />
           <label class="flabel" for="donateCode">你要捐的邀请码</label>
-          <input class="field" id="donateCode" maxlength="6" placeholder="6位字母和数字" autocomplete="off" style="text-transform:uppercase" />
+          <input class="field" id="donateCode" placeholder="6位字母和数字" autocomplete="off" style="text-transform:uppercase" />
           <div class="err" id="donateErr"></div>
           <div class="ok-note" id="donateOk"></div>
           <button class="btn" type="submit" id="donateBtn">捐出这个码</button>
@@ -884,7 +884,7 @@
         return '' +
         '<form id="returnForm">' +
           '<label class="flabel" for="returnCode">你注册后新拿到的邀请码</label>' +
-          '<input class="field" id="returnCode" maxlength="6" placeholder="6位字母和数字" autocomplete="off" style="text-transform:uppercase" />' +
+          '<input class="field" id="returnCode" placeholder="6位字母和数字" autocomplete="off" style="text-transform:uppercase" />' +
           '<div class="err" id="returnErr"></div>' +
           '<button class="btn" type="submit" id="returnBtn">返码，完成这一棒</button>' +
         '</form>';
@@ -950,7 +950,7 @@
           banner.textContent = state.banner.text;
         } else if (state.myReturned) {
           banner.className = "banner show good";
-          banner.textContent = "返码已提交，谢谢你这一棒！表格同步后（约十几秒），下一位就能提交领码。";
+          banner.textContent = "返码已提交，谢谢你这一棒！表格同步后（约2分钟），下一位就能提交领码。";
         } else if (state.myBlacklisted) {
           banner.className = "banner show bad";
           banner.textContent = "你已被拉黑，无法领码。取消拉黑后，你是普通访客，需要重新提交申请进白名单。";
@@ -1347,7 +1347,7 @@
         if (!isValidInviteCode(code)) { err.textContent = INVITE_CODE_ERR; err.style.display = "block"; return; }
         btn.disabled = true; btn.textContent = "提交中…";
         submitForm("捐码", nick, acct, code, "网页捐码").then(function () {
-          ok.textContent = "收到了，谢谢！表格同步后（约十几秒）这个码就会上架可申请。";
+          ok.textContent = "收到了，谢谢！表格同步后（约2分钟）这个码就会上架可申请。";
           ok.style.display = "block";
           document.getElementById("donateCode").value = "";
           btn.disabled = false; btn.textContent = "捐出这个码";
