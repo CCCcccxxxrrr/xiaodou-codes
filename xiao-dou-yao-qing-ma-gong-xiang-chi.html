@@ -1,0 +1,1190 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>小豆邀请码共享池</title>
+    <style>
+      :root {
+        --bg: #f4f6f1;
+        --surface: #ffffff;
+        --surface-2: #edf1e8;
+        --ink: #1d2a1e;
+        --ink-soft: #4c5a4d;
+        --ink-faint: #77836f;
+        --line: #dde3d6;
+        --green: #2e7d46;
+        --green-deep: #1f5c33;
+        --green-soft: #e2f0e2;
+        --amber: #a86a12;
+        --amber-soft: #faf0dc;
+        --red: #b3372c;
+        --red-soft: #fae7e4;
+        --code-bg: #16281a;
+        --code-ink: #c9f2cd;
+        --shadow: 0 10px 30px rgba(31, 60, 35, .10);
+        --radius: 16px;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #10160f;
+          --surface: #1a221a;
+          --surface-2: #232d22;
+          --ink: #e7eee2;
+          --ink-soft: #b3bfa9;
+          --ink-faint: #84917c;
+          --line: #303b2e;
+          --green: #63c07e;
+          --green-deep: #8fd6a3;
+          --green-soft: #22392a;
+          --amber: #e5aa4e;
+          --amber-soft: #3a2f1a;
+          --red: #ef8a7d;
+          --red-soft: #40231f;
+          --code-bg: #0a140b;
+          --code-ink: #b8f4bc;
+          --shadow: 0 10px 30px rgba(0, 0, 0, .45);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+        line-height: 1.6;
+      }
+      button, input, select, summary { min-height: 44px; }
+      button { font: inherit; cursor: pointer; }
+      input { font: inherit; }
+      .wrap { max-width: 680px; margin: 0 auto; padding: 20px 16px 56px; }
+
+      header.top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 6px 2px 16px; }
+      h1 { font-size: 24px; line-height: 1.3; margin: 0; font-weight: 800; letter-spacing: .01em; }
+      .sub { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+      .credit-line {
+        background: var(--green-soft); color: var(--green-deep);
+        border-radius: 12px; padding: 13px 15px; margin: 0 0 16px;
+        font-size: 15px; font-weight: 700; line-height: 1.6;
+      }
+      .contact-card h2 { margin-bottom: 6px; }
+      .contact-card p { margin: 0 0 12px; color: var(--ink-soft); font-size: 14px; }
+      .contact-link {
+        display: inline-block; background: var(--green); color: #fff; font-weight: 700;
+        text-decoration: none; border-radius: 10px; padding: 11px 16px; font-size: 15px;
+      }
+      .contact-link:active { transform: scale(.98); }
+      .live-pill {
+        flex: none; display: inline-flex; align-items: center; gap: 7px;
+        font-size: 12.5px; color: var(--ink-soft);
+        background: var(--surface); border: 1px solid var(--line);
+        padding: 7px 11px; border-radius: 999px; margin-top: 4px;
+      }
+      .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+      @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(46,125,70,.35);} 70% { box-shadow: 0 0 0 7px rgba(46,125,70,0);} 100% { box-shadow: 0 0 0 0 rgba(46,125,70,0);} }
+      @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
+
+      .card {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius); box-shadow: var(--shadow);
+        padding: 22px 20px; margin-bottom: 16px;
+      }
+      .card h2 { font-size: 17px; margin: 0 0 6px; font-weight: 750; }
+      .card .hint { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 14px; }
+
+      .status-big { font-size: 27px; font-weight: 800; line-height: 1.35; margin: 2px 0 6px; }
+      .status-desc { color: var(--ink-soft); font-size: 14.5px; margin: 0; }
+      .badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 12.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px;
+      }
+      .badge.green { background: var(--green-soft); color: var(--green-deep); }
+      .badge.amber { background: var(--amber-soft); color: var(--amber); }
+      .badge.red { background: var(--red-soft); color: var(--red); }
+      .badge.gray { background: var(--surface-2); color: var(--ink-soft); }
+
+      /* stepper */
+      .steps { display: flex; margin: 20px 0 4px; }
+      .step { flex: 1; text-align: center; position: relative; }
+      .step::before {
+        content: ""; position: absolute; top: 15px; left: -50%; width: 100%; height: 2px;
+        background: var(--line);
+      }
+      .step:first-child::before { display: none; }
+      .step.done::before, .step.active::before { background: var(--green); }
+      .step .dot {
+        width: 30px; height: 30px; border-radius: 50%; margin: 0 auto 6px;
+        display: flex; align-items: center; justify-content: center;
+        background: var(--surface-2); color: var(--ink-faint);
+        font-size: 13px; font-weight: 700; position: relative; z-index: 1;
+        border: 2px solid var(--line);
+      }
+      .step.done .dot { background: var(--green); border-color: var(--green); color: #fff; }
+      .step.active .dot { background: var(--surface); border-color: var(--green); color: var(--green-deep); }
+      .step.warn .dot { border-color: var(--red); color: var(--red); background: var(--red-soft); }
+      .step.warn::before { background: var(--red); }
+      .step .lbl { font-size: 12.5px; color: var(--ink-soft); }
+      .step.active .lbl, .step.done .lbl { color: var(--ink); font-weight: 600; }
+      .step.warn .lbl { color: var(--red); font-weight: 700; }
+
+      /* timer */
+      .timer-row { display: flex; align-items: baseline; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+      .timer-num { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+      .timer-cap { color: var(--ink-soft); font-size: 13.5px; }
+      .bar { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 10px; }
+      .bar > i { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width 1s linear; }
+      .bar.over > i { background: var(--red); }
+
+      /* code reveal */
+      .code-box {
+        background: var(--code-bg); color: var(--code-ink);
+        border-radius: 12px; padding: 18px 16px; margin-top: 16px;
+        display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+      }
+      .code-box .cap { font-size: 12px; opacity: .75; margin-bottom: 2px; }
+      .code-val { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 26px; font-weight: 700; letter-spacing: .14em; word-break: break-all; }
+      .copy-btn {
+        background: rgba(255,255,255,.12); color: #eaffea; border: 1px solid rgba(255,255,255,.25);
+        border-radius: 10px; padding: 8px 16px; font-weight: 600;
+      }
+      .copy-btn:active { transform: scale(.97); }
+
+      /* forms */
+      label.flabel { display: block; font-size: 13.5px; font-weight: 600; margin: 14px 0 6px; }
+      label.flabel:first-of-type { margin-top: 4px; }
+      .field {
+        width: 100%; padding: 11px 13px; border-radius: 10px;
+        border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+      }
+      .field:focus { outline: none; border-color: var(--green); }
+      .btn {
+        width: 100%; margin-top: 16px; border: none; border-radius: 12px;
+        background: var(--green); color: #fff; font-size: 16px; font-weight: 700; padding: 13px;
+      }
+      .btn:active { transform: scale(.99); }
+      .btn[disabled] { opacity: .55; cursor: wait; }
+      .btn.ghost { background: var(--surface-2); color: var(--ink); }
+      .btn.small { width: auto; font-size: 14px; padding: 9px 18px; margin-top: 0; }
+      .err { color: var(--red); font-size: 13.5px; margin-top: 10px; display: none; }
+      .ok-note { color: var(--green-deep); font-size: 13.5px; margin-top: 10px; display: none; }
+
+      .stats { display: flex; gap: 10px; margin-bottom: 16px; }
+      .stat {
+        flex: 1; background: var(--surface); border: 1px solid var(--line);
+        border-radius: 12px; padding: 12px 8px; text-align: center;
+      }
+      .stat b { display: block; font-size: 21px; font-weight: 800; }
+      .stat span { font-size: 12.5px; color: var(--ink-soft); }
+
+      /* ledger */
+      .ledger { list-style: none; margin: 6px 0 0; padding: 0; }
+      .ledger li {
+        display: flex; gap: 12px; padding: 11px 2px; border-top: 1px solid var(--line); align-items: baseline;
+      }
+      .ledger li:first-child { border-top: none; }
+      .ledger .who { font-weight: 650; }
+      .ledger .when { margin-left: auto; color: var(--ink-faint); font-size: 12.5px; flex: none; font-variant-numeric: tabular-nums; }
+      .ledger .what { color: var(--ink-soft); font-size: 13.5px; }
+      .empty-note { color: var(--ink-faint); font-size: 14px; padding: 10px 2px 2px; }
+
+      .rules { font-size: 13.5px; color: var(--ink-soft); }
+      .rules li { margin: 5px 0; }
+      .foot { text-align: center; color: var(--ink-faint); font-size: 12.5px; margin-top: 22px; }
+      .foot button { background: none; border: none; color: var(--green-deep); font-size: 12.5px; font-weight: 600; padding: 8px 10px; min-height: 36px; }
+      .sprout { display: block; margin: 4px auto 10px; }
+      .banner {
+        border-radius: 12px; padding: 13px 15px; font-size: 14px; margin-bottom: 16px; display: none;
+      }
+      .banner.show { display: block; }
+      .banner.good { background: var(--green-soft); color: var(--green-deep); }
+      .banner.bad { background: var(--red-soft); color: var(--red); }
+      .banner.warn { background: var(--amber-soft); color: var(--amber); }
+
+      /* follow step + usage tips */
+      .follow-box, .tip-box, .applicant-box {
+        background: var(--surface-2); border-radius: 12px; padding: 14px 15px; margin-top: 14px;
+        font-size: 13.5px; color: var(--ink-soft);
+      }
+      .follow-box b, .tip-box b, .applicant-box b { color: var(--ink); }
+      .follow-box p { margin: 4px 0 10px; }
+      .applicant-box p { margin: 4px 0; }
+      .follow-link {
+        display: inline-block; color: var(--green-deep); font-weight: 700; text-decoration: none;
+        background: var(--green-soft); border-radius: 9px; padding: 9px 14px;
+      }
+      .check-row {
+        display: flex; gap: 10px; align-items: flex-start; margin-top: 12px;
+        font-size: 14px; color: var(--ink); cursor: pointer;
+      }
+      .check-row input[type="checkbox"] { min-height: 0; width: 20px; height: 20px; margin: 2px 0 0; flex: none; accent-color: var(--green); }
+      .tip-box ol { margin: 6px 0 0; padding-left: 20px; }
+      .tip-box li { margin: 3px 0; }
+      .howto { margin: 4px 0 0; padding-left: 22px; font-size: 14px; color: var(--ink-soft); }
+      .howto li { margin: 7px 0; }
+      .howto b { color: var(--ink); }
+      .ledger .acct { color: var(--ink-faint); font-size: 12.5px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="top">
+        <div>
+          <h1>小豆邀请码共享池</h1>
+          <div class="sub">一个码，一棒一棒往下传。领了就用，用完把你新拿到的码还回来。</div>
+        </div>
+        <div class="live-pill"><span class="live-dot"></span><span id="liveText">正在连接…</span></div>
+      </header>
+
+      <p class="credit-line">讲信用：用完之后返码，让邀请码传递下去，让每一个人都能用上。</p>
+
+      <!-- 联系站长 -->
+      <section class="card contact-card">
+        <h2>联系站长 · 进群</h2>
+        <p>站长小红书主页：<b>Cc</b>（小红书号 5299370400）。点下面按钮进主页，私聊站长就能进群。</p>
+        <a class="contact-link" href="https://www.xiaohongshu.com/user/profile/61ea4057000000001000d734" target="_blank" rel="noopener">打开 Cc 的小红书主页</a>
+      </section>
+
+      <div id="poolApp">
+      <div class="banner" id="banner" role="status"></div>
+
+      <!-- 状态卡 -->
+      <section class="card" id="statusCard" aria-live="polite">
+        <div id="statusBody">
+          <span class="badge gray">连接中</span>
+          <div class="status-big">正在读取池子状态…</div>
+          <p class="status-desc">马上就好。</p>
+        </div>
+        <div class="steps" id="steps" aria-hidden="true">
+          <div class="step" data-step="1"><div class="dot">1</div><div class="lbl">提交申请</div></div>
+          <div class="step" data-step="2"><div class="dot">2</div><div class="lbl">进入白名单</div></div>
+          <div class="step" data-step="3"><div class="dot">3</div><div class="lbl">领码使用</div></div>
+          <div class="step" data-step="4"><div class="dot">4</div><div class="lbl">完成</div></div>
+        </div>
+        <div id="actionArea"></div>
+      </section>
+
+      <!-- 怎么用 -->
+      <section class="card">
+        <h2>怎么用 · 返码方法</h2>
+        <ol class="howto">
+          <li>第一次来先在本页提交申请：填<b>昵称 + 小红书账号</b>，等站长审核通过，你就进入<b>白名单</b>（通过一次，长期有效）。</li>
+          <li>进了白名单后，回到本页<b>再提交一次</b>昵称 + 小红书账号领码：池子里有码时先到先得，提交后先等确认（一般 2 分钟内），按提交时间最早的人才会看到码；码在别人手里时，只能等 TA 处理完再提交。</li>
+          <li>领到邀请码后，打开<b>小豆 App</b>，把邀请码填进去，完成注册。</li>
+          <li>进入小豆页面后，点击<b>豆包头像</b>，进入<b>右上角的设置</b>。</li>
+          <li>在设置里打开<b>「邀请好友体验小豆」</b>，那里有你自己的邀请码。</li>
+          <li>回到本页，把你的新邀请码填进返码框，点<b>「返码」</b>，这一棒就完成了。记得在领码后 30 分钟内做完。</li>
+        </ol>
+      </section>
+
+      <div class="stats">
+        <div class="stat"><b id="statDone">–</b><span>已完成接力</span></div>
+        <div class="stat"><b id="statDonate">–</b><span>收到捐码</span></div>
+        <div class="stat"><b id="statClaims">–</b><span>累计申请</span></div>
+      </div>
+
+      <!-- 接力记录 -->
+      <section class="card">
+        <h2>接力记录</h2>
+        <p class="hint">谁申请的、谁还的，都记在这里。邀请码不在记录里公开。</p>
+        <ul class="ledger" id="ledger"></ul>
+        <div class="empty-note" id="ledgerEmpty">还没有记录，等第一棒。</div>
+      </section>
+
+      <!-- 捐码 -->
+      <section class="card" id="donateBox">
+        <h2>我有多的邀请码，捐进池子</h2>
+        <p class="hint">捐码直接上架，白名单里的下一位就能领。谢谢你这一棒。</p>
+        <form id="donateForm">
+          <label class="flabel" for="donateNick">你的昵称</label>
+          <input class="field" id="donateNick" maxlength="30" placeholder="例：小豆用户小王" autocomplete="off" />
+          <label class="flabel" for="donateAcct">你的小红书账号</label>
+          <input class="field" id="donateAcct" maxlength="40" placeholder="你的小红书号" autocomplete="off" />
+          <label class="flabel" for="donateCode">你要捐的邀请码</label>
+          <input class="field" id="donateCode" maxlength="40" placeholder="输入邀请码" autocomplete="off" />
+          <div class="err" id="donateErr"></div>
+          <div class="ok-note" id="donateOk"></div>
+          <button class="btn" type="submit" id="donateBtn">捐出这个码</button>
+        </form>
+      </section>
+
+      <!-- 规矩 -->
+      <section class="card">
+        <h2>池子的规矩</h2>
+        <ul class="rules">
+          <li>领码前先关注小红书 <b>Cc</b>（小红书号 5299370400），关注后<b>私聊站长</b>，表明你的<b>小红书号和昵称</b>；站长核对后才会审批。</li>
+          <li>第一次要先提交申请，站长审批<b>通过后进入白名单，长期有效</b>，以后领码不用再审批；没通过的不能领码。</li>
+          <li>被站长<b>拉黑</b>的人不能领码，也不能提交申请；取消拉黑后恢复成普通访客，要重新提交申请进白名单。</li>
+          <li>白名单里的人领码<b>先到先得</b>：池子里有码时，提交后按表格里的提交时间确认，最早提交的人领走，确认前谁都看不到码，确认一般在 2 分钟内；审批通过只给领码资格，通过后要再提交一次信息才能领码。</li>
+          <li>池子里同一时间只有一个码在接力，领走后持有人独占，其他人只能看到进度、看不到码，要等 TA 返码或超时回池后才能再提交领码。</li>
+          <li>领码后请在 <b>30 分钟</b>内完成注册，并把你账号里新生成的邀请码通过本页返还；超时码会自动回到池子。</li>
+          <li>超时未返码会被公开标记为跑单，昵称会留在接力记录里。</li>
+          <li>返还的必须是<b>新码</b>：你领走的那个码用完就失效了，传下去的是你新拿到的。</li>
+        </ul>
+      </section>
+
+      <div class="foot">
+        状态每 15 秒自动同步一次 · 上次同步 <span id="lastSync">—</span>
+        <button type="button" id="refreshBtn">立即刷新</button>
+      </div>
+      </div>
+    </div>
+
+    <script>
+      "use strict";
+      var CSV_URL = "https://docs.google.com/spreadsheets/d/16OoTJLftqfg0O_3mHyET63fuYrx8Hdpqx5wh6WpcbS4/export?format=csv&gid=0";
+      var FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSc96INYxMBK92IrH50AcRN0hItPOid7d2XwI8jgZcXs49vbWg/formResponse";
+      var F_OP = "entry.2115742322";
+      var F_NICK = "entry.1142874957";
+      var F_ACCT = "entry.790995400";
+      var F_CODE = "entry.995112940";
+      var F_NOTE = "entry.201938033";
+      var TIMEOUT_MS = 30 * 60 * 1000;
+      var POLL_MS = 15000;
+
+      var state = {
+        rows: [],
+        derived: null,
+        loaded: false,
+        fetchError: false,
+        myApplication: null,  // {nick, acct, since} — this visitor submitted a whitelist application, this session only
+        myApproved: null,     // {nick, acct} — this visitor's application was approved; they are whitelisted now
+        myClaim: null,        // {nick, acct, code, since, optimistic} — optimistic=true means the claim is submitted but not yet confirmed in the sheet; the code stays hidden until the sheet's timestamps prove this visitor was first
+        myCodeGone: null,     // {nick, acct} — this visitor's claim landed but an earlier claim took the code
+        myReturned: false,    // this visitor just submitted a return
+        myRejected: null,     // rejection row matching my application, seen in the sheet
+        myBlacklisted: null,  // {nick, acct} — this visitor's identity is on the blacklist
+        banner: null          // {kind, text}
+      };
+
+      /* ---------- start ----------
+         No passcode gate: the pool opens directly. Access control is
+         the human review — whitelist approval by the admin — so the
+         state loads and polls from the moment the page opens. */
+      fetchState();
+      setInterval(fetchState, POLL_MS);
+
+      /* ---------- CSV parsing ---------- */
+      function parseCSV(text) {
+        var rows = [], row = [], field = "", inQ = false, i, c;
+        text = text.replace(/^\uFEFF/, "");
+        for (i = 0; i < text.length; i++) {
+          c = text[i];
+          if (inQ) {
+            if (c === '"') {
+              if (text[i + 1] === '"') { field += '"'; i++; }
+              else inQ = false;
+            } else field += c;
+          } else if (c === '"') { inQ = true; }
+          else if (c === ",") { row.push(field); field = ""; }
+          else if (c === "\n") { row.push(field); rows.push(row); row = []; field = ""; }
+          else if (c === "\r") { /* skip */ }
+          else field += c;
+        }
+        if (field.length || row.length) { row.push(field); rows.push(row); }
+        return rows;
+      }
+
+      function parseTs(s) {
+        if (!s) return null;
+        s = String(s).trim();
+        var pm = false, am = false;
+        if (s.indexOf("下午") >= 0) { pm = true; s = s.replace("下午", " "); }
+        if (s.indexOf("上午") >= 0) { am = true; s = s.replace("上午", " "); }
+        var d = new Date(s);
+        if (isNaN(d.getTime())) d = new Date(s.replace(/\//g, "-"));
+        if (isNaN(d.getTime())) return null;
+        if (pm && d.getHours() < 12) d.setHours(d.getHours() + 12);
+        if (am && d.getHours() === 12) d.setHours(0);
+        return d;
+      }
+
+      function rowsFromCSV(text) {
+        var grid = parseCSV(text), out = [], i, r;
+        for (i = 1; i < grid.length; i++) {           // skip header
+          r = grid[i];
+          if (!r || r.length < 2) continue;
+          var rec = {
+            tsRaw: (r[0] || "").trim(),
+            op: (r[1] || "").trim(),
+            nick: (r[2] || "").trim(),
+            acct: (r[3] || "").trim(),
+            code: (r[4] || "").trim(),
+            note: (r[5] || "").trim()
+          };
+          if (!rec.op && !rec.nick && !rec.code) continue;
+          if (rec.code.toUpperCase() === "TEST00" || rec.code.toUpperCase() === "TEST01") continue;
+          rec.ts = parseTs(rec.tsRaw);
+          out.push(rec);
+        }
+        return out;
+      }
+
+      /* ---------- state derivation ----------
+         Ops in the sheet: 捐码 / 领码 / 通过 / 不通过 / 返码, plus the
+         admin ops 拉黑 / 取消拉黑 / 取消白名单 / 改口令. The admin ops
+         never touch the code state (they are not donations, claims or
+         returns): 改口令 rows are ignored (the passcode gate is gone),
+         and 拉黑 / 取消拉黑 only drive the blacklist. 拉黑 also drops
+         the person from the whitelist; 取消拉黑 makes them a regular
+         visitor again who must re-apply for the whitelist.
+         Whitelist model: 通过/不通过 are whitelist decisions keyed by
+         nick + acct together; a person's latest decision decides —
+         latest 通过 = in the whitelist (permanent), latest 不通过 = out.
+         A 领码 row means different things by the submitter's whitelist
+         status at that point in the sheet:
+         - not whitelisted: an application to join the whitelist. It does
+           NOT reserve a code; several applications can queue at once.
+         - whitelisted: a claim attempt. If no one is using a code and the
+           pool has one, the first submitter (sheet order = submit order)
+           becomes the holder immediately and the 30-minute clock starts
+           from this 领码 row's timestamp. If a code is busy or the pool
+           is empty, the attempt holds nothing — they must submit again
+           after the holder finishes or times out. */
+      function wlKey(nick, acct) { return (nick || "") + "\n" + (acct || ""); }
+
+      function derive(rows) {
+        var available = [], pendingApps = [], whitelist = {}, blacklist = {}, current = null,
+            completed = 0, donated = 0, claims = 0, lastRejected = null, i, r, idx, key, j;
+        function findApp(k) {
+          for (j = 0; j < pendingApps.length; j++) if (wlKey(pendingApps[j].nick, pendingApps[j].acct) === k) return j;
+          return -1;
+        }
+        for (i = 0; i < rows.length; i++) {
+          r = rows[i];
+          r._status = "";
+          if (r.op === "捐码") {
+            if (r.code) { available.push(r.code); donated++; }
+          } else if (r.op === "领码") {
+            claims++;
+            key = wlKey(r.nick, r.acct);
+            if (blacklist[key]) {
+              r._status = "blocked";              // blacklisted: no application, no code
+            } else if (whitelist[key]) {
+              // whitelisted claim attempt
+              if (current) {
+                r._status = "waiting";            // code busy: holds nothing, must resubmit later
+              } else if (available.length) {
+                var code = null;
+                if (r.code) {
+                  idx = available.indexOf(r.code);
+                  if (idx >= 0) { available.splice(idx, 1); code = r.code; }
+                }
+                if (!code) code = available.shift();
+                current = { nick: r.nick, acct: r.acct, code: code, since: r.ts, row: r };
+                r._status = "current";
+              } else {
+                r._status = "nocode";             // pool empty: must resubmit once a code lands
+              }
+            } else {
+              // application to join the whitelist; never reserves a code
+              idx = findApp(key);
+              if (idx >= 0) { pendingApps[idx].row._status = "superseded"; pendingApps.splice(idx, 1); }
+              pendingApps.push({ nick: r.nick, acct: r.acct, code: null, since: r.ts, row: r });
+              r._status = "pending-app";
+            }
+          } else if (r.op === "通过") {
+            key = wlKey(r.nick, r.acct);
+            whitelist[key] = true;
+            idx = findApp(key);
+            if (idx >= 0) { pendingApps[idx].row._status = "whitelisted"; pendingApps.splice(idx, 1); }
+            if (lastRejected && wlKey(lastRejected.nick, lastRejected.acct) === key) lastRejected = null;
+            r._status = "approved";
+          } else if (r.op === "不通过") {
+            key = wlKey(r.nick, r.acct);
+            whitelist[key] = false;
+            idx = findApp(key);
+            if (idx >= 0) {
+              pendingApps[idx].row._status = "rejected";
+              pendingApps.splice(idx, 1);
+              lastRejected = { nick: r.nick, acct: r.acct, ts: r.ts };
+              r._status = "rejected";
+            } else {
+              r._status = "rejected";
+              lastRejected = { nick: r.nick, acct: r.acct, ts: r.ts };
+            }
+          } else if (r.op === "拉黑") {
+            key = wlKey(r.nick, r.acct);
+            blacklist[key] = true;
+            whitelist[key] = false;
+            idx = findApp(key);
+            if (idx >= 0) { pendingApps[idx].row._status = "superseded"; pendingApps.splice(idx, 1); }
+            r._status = "blacklisted";
+          } else if (r.op === "取消拉黑") {
+            key = wlKey(r.nick, r.acct);
+            blacklist[key] = false;
+            r._status = "unblacklisted";
+          } else if (r.op === "取消白名单") {
+            key = wlKey(r.nick, r.acct);
+            whitelist[key] = false;
+            idx = findApp(key);
+            if (idx >= 0) { pendingApps[idx].row._status = "superseded"; pendingApps.splice(idx, 1); }
+            r._status = "unwhitelisted";
+          } else if (r.op === "改口令") {
+            r._status = "ignored";                // legacy op; no pool state change
+          } else if (r.op === "返码") {
+            if (current) {
+              current.row._status = "done";
+              completed++;
+              current = null;
+            }
+            if (r.code) available.push(r.code);
+          }
+        }
+        return { available: available, pendingApps: pendingApps, whitelist: whitelist, blacklist: blacklist, current: current, completed: completed, donated: donated, claims: claims, lastRejected: lastRejected };
+      }
+
+      function isWhitelisted(d, nick, acct) {
+        return !!(d && d.whitelist && d.whitelist[wlKey(nick, acct)]);
+      }
+
+      function isBlacklisted(d, nick, acct) {
+        return !!(d && d.blacklist && d.blacklist[wlKey(nick, acct)]);
+      }
+
+      function isOverdue(cur) {
+        return !!(cur && cur.since && (Date.now() - cur.since.getTime() > TIMEOUT_MS));
+      }
+
+      function copySlot(o) {
+        if (!o) return null;
+        return { nick: o.nick, acct: o.acct, code: o.code, since: o.since, row: o.row, mine: !!o.mine, syncing: !!o.syncing };
+      }
+
+      function effectiveDerived() {
+        var d = state.derived;
+        if (!d) return null;
+        var eff = {
+          available: d.available.slice(),
+          pendingApps: d.pendingApps.map(copySlot),
+          whitelist: d.whitelist,
+          blacklist: d.blacklist,
+          current: copySlot(d.current),
+          completed: d.completed, donated: d.donated, claims: d.claims,
+          lastRejected: d.lastRejected,
+          timedOut: null,
+          myConfirming: false
+        };
+        // My return was submitted but the sheet has not caught up: show finished for me.
+        if (state.myReturned && eff.current && state.myClaim && eff.current.nick === state.myClaim.nick && eff.current.acct === state.myClaim.acct) {
+          eff.current = null;
+        }
+        // Blacklist: if any identity I used this session is blacklisted,
+        // drop my application / approval / claim so no code can show.
+        // Once the blacklist entry is lifted, the flag clears and I am a
+        // regular visitor again (whitelist membership is NOT restored).
+        if (state.myBlacklisted && !isBlacklisted(d, state.myBlacklisted.nick, state.myBlacklisted.acct)) {
+          state.myBlacklisted = null;
+        }
+        var myIds = [state.myApplication, state.myApproved, state.myClaim], mi, mid;
+        for (mi = 0; mi < myIds.length; mi++) {
+          mid = myIds[mi];
+          if (mid && isBlacklisted(d, mid.nick, mid.acct)) {
+            state.myBlacklisted = { nick: mid.nick, acct: mid.acct };
+            state.myApplication = null;
+            state.myApproved = null;
+            state.myClaim = null;
+            state.myCodeGone = null;
+            break;
+          }
+        }
+        // My whitelist application: reflect its sheet outcome in this session.
+        if (state.myApplication && !state.myReturned) {
+          var mine = state.myApplication;
+          var myAppEntry = null, k;
+          for (k = 0; k < eff.pendingApps.length; k++) {
+            if (eff.pendingApps[k].nick === mine.nick && eff.pendingApps[k].acct === mine.acct) myAppEntry = eff.pendingApps[k];
+          }
+          if (myAppEntry) {
+            myAppEntry.mine = true;
+          } else if (isWhitelisted(d, mine.nick, mine.acct)) {
+            // approved: application resolved into whitelist membership
+            state.myApproved = { nick: mine.nick, acct: mine.acct };
+            state.myApplication = null;
+          } else if (d.lastRejected && d.lastRejected.nick === mine.nick && d.lastRejected.acct === mine.acct) {
+            state.myRejected = d.lastRejected;
+            state.myApplication = null;
+          } else if (!(eff.current && eff.current.nick === mine.nick && eff.current.acct === mine.acct)) {
+            // not in the sheet yet: show my application in the queue right away
+            eff.pendingApps.push({ nick: mine.nick, acct: mine.acct, code: null, since: mine.since, row: null, mine: true, syncing: true });
+          }
+        }
+        // My claim: the code is NEVER shown on submission alone. While my
+        // claim row has not landed in the sheet, the UI stays in a
+        // "confirming" state. Once it lands, the sheet decides by the
+        // form's real timestamps: if my row is the earliest claim for the
+        // current code, derive made me the holder and the code may show
+        // (timer runs from my row's timestamp); if an earlier claim took
+        // it, my row is "waiting"/"nocode" and the code is gone for me.
+        if (state.myClaim && !state.myReturned) {
+          var mc = state.myClaim;
+          if (mc.optimistic) {
+            var myRow = null, ri, rr;
+            for (ri = state.rows.length - 1; ri >= 0; ri--) {
+              rr = state.rows[ri];
+              if (rr.op === "领码" && rr.nick === mc.nick && rr.acct === mc.acct) { myRow = rr; break; }
+            }
+            // only a row at/after this submission counts (older rows are
+            // my earlier application or attempts); allow clock slack
+            if (myRow && mc.since && myRow.ts && myRow.ts.getTime() < mc.since.getTime() - 3 * 60 * 1000) myRow = null;
+            if (myRow && myRow._status === "current" && eff.current && eff.current.nick === mc.nick && eff.current.acct === mc.acct) {
+              mc.optimistic = false;   // confirmed first: code may show now
+              eff.current.mine = true;
+              if (eff.current.code) mc.code = eff.current.code;
+            } else if (myRow && (myRow._status === "waiting" || myRow._status === "nocode")) {
+              state.myCodeGone = { nick: mc.nick, acct: mc.acct };
+              state.myClaim = null;
+            } else {
+              eff.myConfirming = true; // not landed yet — keep the code hidden
+            }
+          } else if (eff.current && eff.current.nick === mc.nick && eff.current.acct === mc.acct) {
+            eff.current.mine = true;
+            if (!mc.code && eff.current.code) mc.code = eff.current.code;
+          }
+        }
+        // Holder past 30 minutes: the code automatically returns to the pool.
+        if (eff.current && isOverdue(eff.current)) {
+          var co = eff.current;
+          if (co.row) co.row._status = "timeout";
+          eff.timedOut = co;
+          if (co.code && eff.available.indexOf(co.code) < 0) eff.available.push(co.code);
+          eff.current = null;
+        }
+        return eff;
+      }
+
+      /* ---------- form submission ---------- */
+      function submitForm(op, nick, acct, code, note) {
+        var body = new URLSearchParams();
+        body.set(F_OP, op);
+        body.set(F_NICK, nick);
+        body.set(F_ACCT, acct || "");
+        body.set(F_CODE, code || "");
+        body.set(F_NOTE, note || "");
+        return fetch(FORM_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString()
+        });
+      }
+
+      function fetchState() {
+        var url = CSV_URL + "&_t=" + Date.now();
+        return fetch(url, { cache: "no-store" })
+          .then(function (res) { if (!res.ok) throw new Error("http " + res.status); return res.text(); })
+          .then(function (text) {
+            state.rows = rowsFromCSV(text);
+            state.derived = derive(state.rows);
+            state.loaded = true;
+            state.fetchError = false;
+            document.getElementById("lastSync").textContent = new Date().toLocaleTimeString("zh-CN", { hour12: false });
+            document.getElementById("liveText").textContent = "实时同步中";
+            render();
+          })
+          .catch(function () {
+            state.fetchError = true;
+            document.getElementById("liveText").textContent = state.loaded ? "同步失败，显示上次状态" : "连接失败，正在重试";
+            render();
+          });
+      }
+
+      /* ---------- rendering ---------- */
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+        });
+      }
+      function fmtTime(d, raw) {
+        if (d) return d.toLocaleString("zh-CN", { hour12: false, month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        return raw || "";
+      }
+      function setSteps(mode) {
+        var steps = document.querySelectorAll("#steps .step");
+        steps.forEach(function (el) { el.className = "step"; });
+        function mark(n, cls) { var el = steps[n - 1]; if (el) el.classList.add(cls); }
+        function dots(a, b, c, dd) {
+          steps[0].querySelector(".dot").textContent = a;
+          steps[1].querySelector(".dot").textContent = b;
+          steps[2].querySelector(".dot").textContent = c;
+          steps[3].querySelector(".dot").textContent = dd;
+        }
+        if (mode === "pending") {
+          mark(1, "done"); mark(2, "active");
+          dots("✓", "2", "3", "4");
+        } else if (mode === "claim") {
+          mark(1, "done"); mark(2, "done"); mark(3, "active");
+          dots("✓", "✓", "3", "4");
+        } else if (mode === "inuse") {
+          mark(1, "done"); mark(2, "done"); mark(3, "active");
+          dots("✓", "✓", "3", "4");
+        } else if (mode === "done") {
+          for (var i = 1; i <= 4; i++) mark(i, "done");
+          dots("✓", "✓", "✓", "✓");
+        } else if (mode === "apply") {
+          mark(1, "active");
+          dots("1", "2", "3", "4");
+        } else {
+          dots("1", "2", "3", "4");
+        }
+      }
+
+      function claimFormHTML() {
+        return '' +
+        '<form id="claimForm">' +
+          '<div class="follow-box">' +
+            '<b>第一次来先做这一步：关注 + 私聊站长</b>' +
+            '<p>先关注小红书账号 <b>Cc</b>（小红书号 5299370400），关注后<b>私聊站长</b>，表明你的<b>小红书号和昵称</b>。站长核对后审批，通过了你就进白名单。已经在白名单里的，这一步不用再做，勾选也可以跳过。</p>' +
+            '<a class="follow-link" href="https://www.xiaohongshu.com/user/profile/61ea4057000000001000d734" target="_blank" rel="noopener">打开 Cc 的小红书主页</a>' +
+            '<label class="check-row"><input type="checkbox" id="claimFollow" /> <span>我已关注，并私聊站长表明了小红书号和昵称</span></label>' +
+          '</div>' +
+          '<label class="flabel" for="claimAcct">你的小红书账号</label>' +
+          '<input class="field" id="claimAcct" maxlength="40" placeholder="你的小红书号" autocomplete="off" />' +
+          '<label class="flabel" for="claimNick">你的昵称（提交后会公开显示在进度里）</label>' +
+          '<input class="field" id="claimNick" maxlength="30" placeholder="例：小豆用户小王" autocomplete="off" />' +
+          '<div class="err" id="claimErr"></div>' +
+          '<button class="btn" type="submit" id="claimBtn">提交</button>' +
+        '</form>' +
+        '<p class="hint" style="margin:12px 0 0">还没进白名单：提交后是申请，等站长审批，通过后要回来再提交一次才领码。已在白名单：提交后先确认先后（一般 2 分钟内），按提交时间你是最早的，码才显示给你。</p>';
+      }
+
+      function queueHTML(apps) {
+        if (!apps || !apps.length) return "";
+        var rows = apps.map(function (a, i) {
+          return '<p>' + (i + 1) + '. <b>' + esc(a.nick) + '</b>（小红书 ' + esc(a.acct || "—") + '）· ' + esc(fmtTime(a.since, "")) + (a.mine ? ' · <b>就是你</b>' : '') + (a.syncing ? ' · 同步中' : '') + '</p>';
+        }).join("");
+        return '<div class="applicant-box"><b>待审核申请（按提交顺序）</b>' + rows + '<p>站长在私聊里核对小红书号和昵称后逐个审批，通过了就进白名单。</p></div>';
+      }
+
+      function useTipHTML() {
+        return '' +
+        '<div class="tip-box">' +
+          '<b>接下来这样做</b>' +
+          '<ol>' +
+            '<li>把上面的邀请码填入<b>小豆 App</b>，完成注册。</li>' +
+            '<li>进入小豆页面后，点击<b>豆包头像</b>，进入<b>右上角的设置</b>。</li>' +
+            '<li>在<b>「邀请好友体验小豆」</b>里获取你自己的邀请码。</li>' +
+            '<li>把新码填到下方返码框里，点「返码」，这一棒就完成了。</li>' +
+          '</ol>' +
+        '</div>';
+      }
+
+      function returnFormHTML() {
+        return '' +
+        '<form id="returnForm">' +
+          '<label class="flabel" for="returnCode">你注册后新拿到的邀请码</label>' +
+          '<input class="field" id="returnCode" maxlength="40" placeholder="输入你账号里新生成的邀请码" autocomplete="off" />' +
+          '<div class="err" id="returnErr"></div>' +
+          '<button class="btn" type="submit" id="returnBtn">返码，完成这一棒</button>' +
+        '</form>';
+      }
+
+      function codeBoxHTML(code) {
+        return '' +
+        '<div class="code-box">' +
+          '<div><div class="cap">只显示给你 · 你的邀请码</div><div class="code-val">' + esc(code) + '</div></div>' +
+          '<button type="button" class="copy-btn" id="copyBtn">复制</button>' +
+        '</div>';
+      }
+
+      function timerHTML(cur) {
+        if (!cur.since) return '<p class="status-desc" style="margin-top:12px">计时开始时间同步中…</p>';
+        return '' +
+        '<div class="timer-row"><span class="timer-num" id="timerNum">--:--</span>' +
+        '<span class="timer-cap" id="timerCap">剩余时间（领码后 30 分钟内返码）</span></div>' +
+        '<div class="bar" id="timerBar"><i style="width:100%"></i></div>';
+      }
+
+      function holderFormHTML() {
+        return '' +
+        '<form id="holderForm" style="margin-top:16px">' +
+          '<p class="hint" style="margin:0 0 4px">码是你领的？输入你领码时填的昵称 + 小红书账号，查看你的码：</p>' +
+          '<label class="flabel" for="holderNick">你的昵称</label>' +
+          '<input class="field" id="holderNick" maxlength="30" placeholder="领码时填的昵称" autocomplete="off" />' +
+          '<label class="flabel" for="holderAcct">你的小红书账号</label>' +
+          '<input class="field" id="holderAcct" maxlength="40" placeholder="领码时填的小红书号" autocomplete="off" />' +
+          '<div class="err" id="holderErr"></div>' +
+          '<button class="btn" type="submit" id="holderBtn">查看我的码</button>' +
+        '</form><div id="holderArea"></div>';
+      }
+
+      function render() {
+        var body = document.getElementById("statusBody");
+        var action = document.getElementById("actionArea");
+        var banner = document.getElementById("banner");
+
+        // banner
+        if (state.banner) {
+          banner.className = "banner show " + state.banner.kind;
+          banner.textContent = state.banner.text;
+        } else if (state.myReturned) {
+          banner.className = "banner show good";
+          banner.textContent = "返码已提交，谢谢你这一棒！表格同步后（约十几秒），下一位就能提交领码。";
+        } else if (state.myBlacklisted) {
+          banner.className = "banner show bad";
+          banner.textContent = "你已被拉黑，无法领码。取消拉黑后，你是普通访客，需要重新提交申请进白名单。";
+        } else if (state.myCodeGone) {
+          banner.className = "banner show bad";
+          banner.textContent = "码已经没了：按提交时间，这个码给了比你更早提交的人，你没领到，也看不到码。等 TA 返码或超时回池后，再提交一次领码。";
+        } else if (state.myRejected) {
+          banner.className = "banner show bad";
+          banner.textContent = "申请未通过：站长没有批准你加入白名单。可以确认已关注并私聊站长表明小红书号和昵称后，重新提交申请。";
+        } else if (state.myApproved && !state.myClaim) {
+          banner.className = "banner show good";
+          banner.textContent = "你已通过审核，在白名单里了！池子有码、没人使用时，在下方再提交一次信息就能直接领码，先到先得。";
+        } else {
+          banner.className = "banner";
+          banner.textContent = "";
+        }
+
+        if (!state.loaded) {
+          body.innerHTML = state.fetchError
+            ? '<span class="badge red">连接失败，正在重试</span>' +
+              '<div class="status-big">暂时连不上池子</div>' +
+              '<p class="status-desc">正在自动重试，也可以点页面底部的「立即刷新」。</p>'
+            : '<span class="badge gray">连接中</span>' +
+              '<div class="status-big">正在读取池子状态…</div>' +
+              '<p class="status-desc">马上就好。</p>';
+          action.innerHTML = "";
+          setSteps("idle");
+          renderStats(null); renderLedger();
+          return;
+        }
+
+        var d = effectiveDerived();
+        var cur = d.current;
+        var apps = d.pendingApps;
+        var hasAvailable = d.available.length > 0;
+        var myAppPending = false, ai;
+        for (ai = 0; ai < apps.length; ai++) if (apps[ai].mine) myAppPending = true;
+
+        renderStats(d); renderLedger();
+
+        if (d.myConfirming) {
+          body.innerHTML = '<span class="badge amber">确认中</span>' +
+            '<div class="status-big">正在确认，先到先得…</div>' +
+            '<p class="status-desc">你的领码已经提交，正在等它同步进表格确认先后顺序（一般 2 分钟内）。按提交时间，你是这个码最早提交的人，码才会显示；有人比你更早提交，你就会看到“码已经没了”。确认完成前，码不会显示。</p>' +
+            queueHTML(apps);
+          setSteps("claim");
+          action.innerHTML = '<p class="hint" style="margin-top:14px">先别重复提交，也别关掉页面太久。页面每 15 秒自动确认一次，确认结果会直接出现在这里。</p>';
+        } else if (cur) {
+          var verified = !!(state.myClaim && state.myClaim.nick === cur.nick && state.myClaim.acct === cur.acct);
+          body.innerHTML = '<span class="badge amber">使用中</span>' +
+            '<div class="status-big">码在「' + esc(cur.nick) + '」手里使用中</div>' +
+            '<p class="status-desc">TA 是白名单成员，提交最快，先领到了码。TA 返码或超时回池后，其他白名单成员才能再提交领码。码只对 TA 本人可见，30 分钟从领码时算起。</p>' +
+            timerHTML(cur) +
+            queueHTML(apps);
+          setSteps("inuse");
+          updateTimer();
+
+          if (verified && cur.code) {
+            action.innerHTML = codeBoxHTML(cur.code) + useTipHTML() + returnFormHTML();
+            bindCopy(); bindReturn(cur.nick, cur.acct, cur.code);
+          } else if (verified && !cur.code) {
+            action.innerHTML = '<p class="hint" style="margin-top:14px">码正在同步，稍等几秒刷新一次。</p>';
+          } else {
+            action.innerHTML = holderFormHTML() +
+              '<p class="hint" style="margin-top:14px">现在领不了码：等上一位处理完（返码或超时回池），白名单成员再提交信息领码。还没进白名单的，可以等池子空闲时在本页提交申请。</p>';
+            bindHolder(cur);
+          }
+        } else if (hasAvailable) {
+          if (state.myReturned) setSteps("done");
+          else if (myAppPending) setSteps("pending");
+          else if (state.myApproved) setSteps("claim");
+          else setSteps("apply");
+          var notes = [];
+          if (d.timedOut) notes.push('上一位「' + esc(d.timedOut.nick) + '」领码后超时未返码，已标记跑单，码已自动回到池子。');
+          if (d.lastRejected && !state.myRejected) notes.push('最近一条申请未通过：申请人「' + esc(d.lastRejected.nick) + '」（小红书 ' + esc(d.lastRejected.acct) + '）。');
+          if (state.myRejected) notes.push("你刚才的申请未通过，可以重新提交申请。");
+          body.innerHTML = '<span class="badge green">有码可领</span>' +
+            '<div class="status-big">池子里有码，没人正在用</div>' +
+            '<p class="status-desc">白名单成员现在提交信息就能领码，先到先得，提交后按提交时间确认（一般 2 分钟内），最早的人才看到码；还没进白名单的，提交后先等站长审批。' + (notes.length ? "<br>" + notes.join("<br>") : "") + '</p>' +
+            queueHTML(apps);
+          action.innerHTML = claimFormHTML();
+          bindClaim();
+        } else {
+          if (myAppPending) setSteps("pending"); else if (state.myApproved) setSteps("claim"); else setSteps("idle");
+          var extra = "";
+          if (d.timedOut) extra = '<br>上一位「' + esc(d.timedOut.nick) + '」超时未返码，码已用完，等新码上架。';
+          if (d.lastRejected && !state.myRejected) extra += '<br>最近一条申请未通过，申请人「' + esc(d.lastRejected.nick) + '」。';
+          body.innerHTML = '<span class="badge gray">等待新码上架</span>' +
+            '<svg class="sprout" width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 42V26" stroke="var(--green)" stroke-width="3" stroke-linecap="round"/><path d="M24 26C24 18 18 12 8 12c0 10 6 14 16 14Z" fill="var(--green-soft)" stroke="var(--green)" stroke-width="2.5"/><path d="M24 22c0-8 6-12 16-12 0 10-6 12-16 12Z" fill="var(--green-soft)" stroke="var(--green)" stroke-width="2.5"/></svg>' +
+            '<div class="status-big" style="text-align:center">等待新码上架</div>' +
+            '<p class="status-desc" style="text-align:center">池子里暂时没码。有码的人可以直接在下方「捐码」里放进来。还没进白名单的，可以先在下方提交申请过审，码一上架就能抢。' + extra + '</p>' +
+            queueHTML(apps);
+          action.innerHTML = claimFormHTML();
+          bindClaim();
+        }
+      }
+
+      function renderStats(d) {
+        document.getElementById("statDone").textContent = d ? d.completed : "–";
+        document.getElementById("statDonate").textContent = d ? d.donated : "–";
+        document.getElementById("statClaims").textContent = d ? d.claims : "–";
+      }
+
+      function renderLedger() {
+        var ul = document.getElementById("ledger");
+        var empty = document.getElementById("ledgerEmpty");
+        var items = [];
+        for (var i = state.rows.length - 1; i >= 0; i--) {
+          var r = state.rows[i];
+          var what = "", badgeCls = "gray", badgeTxt = r.op;
+          if (r.op === "捐码") { what = "捐了一个码进池子"; badgeCls = "green"; }
+          else if (r.op === "领码") {
+            if (r._status === "done") { what = "领到码并已完成返码"; badgeCls = "green"; }
+            else if (r._status === "current") { what = "领到码，正在使用中"; badgeCls = "amber"; }
+            else if (r._status === "pending-app") { what = "提交白名单申请，待审核"; badgeCls = "amber"; }
+            else if (r._status === "whitelisted") { what = "白名单申请已通过"; badgeCls = "green"; }
+            else if (r._status === "rejected") { what = "白名单申请未通过"; badgeCls = "red"; }
+            else if (r._status === "timeout") { what = "领码后超时未返 · 跑单"; badgeCls = "red"; }
+            else if (r._status === "waiting") { what = "提交领码时码正在使用中，没领到"; badgeCls = "gray"; }
+            else if (r._status === "blocked") { what = "已被拉黑，未能领码"; badgeCls = "red"; }
+            else if (r._status === "nocode") { what = "提交领码时池子里没码，没领到"; badgeCls = "gray"; }
+            else if (r._status === "superseded") { what = "申请已被更新的申请替代"; badgeCls = "gray"; }
+            else { what = "提交了领码"; badgeCls = "amber"; }
+          }
+          else if (r.op === "通过") {
+            what = "站长审核通过，进入白名单"; badgeCls = "green";
+          }
+          else if (r.op === "不通过") {
+            what = "审核未通过，不在白名单"; badgeCls = "red";
+          }
+          else if (r.op === "返码") { what = "返还新码，接力继续"; badgeCls = "green"; }
+          else continue;
+          items.push('<li><span class="badge ' + badgeCls + '">' + esc(badgeTxt) + '</span>' +
+            '<span><span class="who">' + esc(r.nick || "匿名") + '</span>' +
+            (r.acct ? ' <span class="acct">小红书 ' + esc(r.acct) + '</span>' : '') +
+            ' <span class="what">' + esc(what) + '</span></span>' +
+            '<span class="when">' + esc(fmtTime(r.ts, r.tsRaw)) + '</span></li>');
+        }
+        ul.innerHTML = items.join("");
+        empty.style.display = items.length ? "none" : "block";
+      }
+
+      /* ---------- timer tick ---------- */
+      function updateTimer() {
+        var num = document.getElementById("timerNum");
+        if (!num || !state.derived) return;
+        var d = effectiveDerived();
+        var cur = d && d.current;
+        if (!cur || !cur.since) return;
+        var elapsed = Date.now() - cur.since.getTime();
+        var remain = TIMEOUT_MS - elapsed;
+        var bar = document.getElementById("timerBar");
+        var cap = document.getElementById("timerCap");
+        if (remain >= 0) {
+          var s = Math.ceil(remain / 1000);
+          num.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+          if (cap) cap.textContent = "剩余时间（领码后 30 分钟内返码）";
+          if (bar) { bar.classList.remove("over"); bar.firstElementChild.style.width = Math.max(0, remain / TIMEOUT_MS * 100) + "%"; }
+        } else {
+          var os = Math.floor(-remain / 1000);
+          num.textContent = "+" + String(Math.floor(os / 60)).padStart(2, "0") + ":" + String(os % 60).padStart(2, "0");
+          if (cap) cap.textContent = "已超时，码已自动回到池子";
+          if (bar) { bar.classList.add("over"); bar.firstElementChild.style.width = "100%"; }
+        }
+      }
+      setInterval(function () {
+        if (!state.loaded || !state.derived || !state.derived.current) return;
+        var before = isOverdue(state.derived.current);
+        updateTimer();
+        if (!before && isOverdue(state.derived.current)) render();
+      }, 1000);
+
+      /* ---------- bindings ---------- */
+      function bindClaim() {
+        var form = document.getElementById("claimForm");
+        if (!form) return;
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var acct = document.getElementById("claimAcct").value.trim();
+          var nick = document.getElementById("claimNick").value.trim();
+          var followed = document.getElementById("claimFollow").checked;
+          var err = document.getElementById("claimErr");
+          var btn = document.getElementById("claimBtn");
+          err.style.display = "none";
+          if (!acct) { err.textContent = "填一下你的小红书账号（小红书号），要登记。"; err.style.display = "block"; return; }
+          if (!nick) { err.textContent = "先填你的昵称，提交后会公开显示在进度里。"; err.style.display = "block"; return; }
+          btn.disabled = true; btn.textContent = "提交中…";
+          // re-check the sheet right before submitting: whitelist status and
+          // first-come order are decided by what is already in the sheet
+          fetchState().then(function () {
+            var d = state.derived;
+            if (!d) {
+              state.banner = { kind: "bad", text: "暂时读不到池子状态，请稍后再提交一次。" };
+              render();
+              return;
+            }
+            var key = wlKey(nick, acct), i, alreadyPending = false;
+            for (i = 0; i < d.pendingApps.length; i++) {
+              if (wlKey(d.pendingApps[i].nick, d.pendingApps[i].acct) === key) alreadyPending = true;
+            }
+            if (isBlacklisted(d, nick, acct)) {
+              // blacklisted: no application is created, no code is shown
+              state.myBlacklisted = { nick: nick, acct: acct };
+              state.banner = { kind: "bad", text: "你已被拉黑，无法领码。" };
+              render();
+              return;
+            }
+            if (!isWhitelisted(d, nick, acct)) {
+              // application to join the whitelist — never touches a code
+              if (!followed) {
+                btn.disabled = false; btn.textContent = "提交";
+                err.textContent = "你还不在白名单：先关注 Cc、私聊站长表明小红书号和昵称，再勾选确认，才能提交申请。";
+                err.style.display = "block";
+                return;
+              }
+              if (alreadyPending) {
+                state.banner = { kind: "warn", text: "你已经在待审核队列里了，不用重复提交。等站长审批，通过后回来再提交一次领码。" };
+                render();
+                return;
+              }
+              submitForm("领码", nick, acct, "", "网页申请白名单").then(function () {
+                state.myApplication = { nick: nick, acct: acct, since: new Date() };
+                state.myReturned = false;
+                state.myRejected = null;
+                state.myCodeGone = null;
+                state.banner = { kind: "good", text: "申请已提交，你进了待审核队列。站长在私聊里核对小红书号和昵称后审批；通过后你就在白名单里了，回来再提交一次信息就能领码（先到先得）。" };
+                render();
+                setTimeout(fetchState, 5000);
+                setTimeout(fetchState, 12000);
+              }).catch(function () {
+                state.banner = { kind: "bad", text: "提交没成功，网络可能不稳，请再点一次提交。" };
+                render();
+              });
+              return;
+            }
+            // whitelisted claim — first come, first served
+            state.myApproved = { nick: nick, acct: acct };
+            if (d.current) {
+              state.banner = { kind: "warn", text: "码正在「" + d.current.nick + "」手里使用中。等 TA 返码或超时回池后，再提交一次领码。" };
+              render();
+              return;
+            }
+            if (!d.available.length) {
+              state.banner = { kind: "warn", text: "你已在白名单里，但池子里暂时没码。等新码上架后再提交领码。" };
+              render();
+              return;
+            }
+            var code = d.available[0];
+            submitForm("领码", nick, acct, code, "网页领码").then(function () {
+              state.myClaim = { nick: nick, acct: acct, code: code, since: new Date(), optimistic: true };
+              state.myReturned = false;
+              state.myRejected = null;
+              state.myCodeGone = null;
+              state.banner = { kind: "warn", text: "已提交，正在确认先到先得…码先不显示：等你的提交同步进表格（一般 2 分钟内），按提交时间确认你是这个码最早提交的人，码才会出现在这里；如果有人更早提交，你会看到“码已经没了”。" };
+              render();
+              setTimeout(fetchState, 5000);
+              setTimeout(fetchState, 12000);
+            }).catch(function () {
+              state.banner = { kind: "bad", text: "提交没成功，网络可能不稳，请再点一次提交。" };
+              render();
+            });
+          });
+        });
+      }
+
+      function bindReturn(nick, acct, curCode) {
+        var form = document.getElementById("returnForm");
+        if (!form) return;
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var code = document.getElementById("returnCode").value.trim();
+          var err = document.getElementById("returnErr");
+          var btn = document.getElementById("returnBtn");
+          err.style.display = "none";
+          if (!code) { err.textContent = "把你注册后新拿到的邀请码填进来，这一棒才算完成。"; err.style.display = "block"; return; }
+          if (curCode && code === curCode) {
+            err.textContent = "这个是刚才领走的旧码，已经失效了。要填的是你注册后账号里新生成的码。";
+            err.style.display = "block"; return;
+          }
+          btn.disabled = true; btn.textContent = "提交中…";
+          submitForm("返码", nick, acct, code, "网页返码").then(function () {
+            state.myReturned = true;
+            state.banner = null;
+            render();
+            setTimeout(fetchState, 5000);
+            setTimeout(fetchState, 12000);
+          }).catch(function () {
+            state.banner = { kind: "bad", text: "返码提交没成功，请再试一次。" };
+            render();
+          });
+        });
+      }
+
+      function bindHolder(cur) {
+        var form = document.getElementById("holderForm");
+        if (!form) return;
+        form.addEventListener("submit", function (ev) {
+          ev.preventDefault();
+          var nick = document.getElementById("holderNick").value.trim();
+          var acct = document.getElementById("holderAcct").value.trim();
+          var err = document.getElementById("holderErr");
+          err.style.display = "none";
+          if (nick && acct && isBlacklisted(state.derived, nick, acct)) {
+            err.textContent = "你已被拉黑，无法领码。";
+            err.style.display = "block"; return;
+          }
+          if (!nick || !acct || nick !== cur.nick || acct !== cur.acct) {
+            err.textContent = "昵称或小红书账号和领码时填的对不上，码不能显示。";
+            err.style.display = "block"; return;
+          }
+          state.myClaim = { nick: nick, acct: acct, code: cur.code, since: cur.since };
+          state.banner = { kind: "good", text: "发码完成！码只显示在你这台设备上。把码填进小豆 App，按下方步骤拿到你的新码，30 分钟内回来返码（从领码时算起）。" };
+          render();
+        });
+      }
+
+      function bindCopy() {
+        var btn = document.getElementById("copyBtn");
+        if (!btn) return;
+        btn.addEventListener("click", function () {
+          var code = state.myClaim && state.myClaim.code;
+          if (!code) return;
+          function done() { btn.textContent = "已复制"; setTimeout(function () { btn.textContent = "复制"; }, 2000); }
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(code).then(done).catch(function () { fallback(); });
+          } else fallback();
+          function fallback() {
+            var ta = document.createElement("textarea");
+            ta.value = code; document.body.appendChild(ta); ta.select();
+            try { document.execCommand("copy"); done(); } catch (e) {}
+            document.body.removeChild(ta);
+          }
+        });
+      }
+
+      document.getElementById("donateForm").addEventListener("submit", function (ev) {
+        ev.preventDefault();
+        var nick = document.getElementById("donateNick").value.trim();
+        var acct = document.getElementById("donateAcct").value.trim();
+        var code = document.getElementById("donateCode").value.trim();
+        var err = document.getElementById("donateErr");
+        var ok = document.getElementById("donateOk");
+        var btn = document.getElementById("donateBtn");
+        err.style.display = "none"; ok.style.display = "none";
+        if (!nick) { err.textContent = "填一下你的昵称，捐码会上接力记录。"; err.style.display = "block"; return; }
+        if (!acct) { err.textContent = "填一下你的小红书账号（小红书号）。"; err.style.display = "block"; return; }
+        if (!code) { err.textContent = "把要捐的邀请码填进来。"; err.style.display = "block"; return; }
+        btn.disabled = true; btn.textContent = "提交中…";
+        submitForm("捐码", nick, acct, code, "网页捐码").then(function () {
+          ok.textContent = "收到了，谢谢！表格同步后（约十几秒）这个码就会上架可申请。";
+          ok.style.display = "block";
+          document.getElementById("donateCode").value = "";
+          btn.disabled = false; btn.textContent = "捐出这个码";
+          setTimeout(fetchState, 5000);
+          setTimeout(fetchState, 12000);
+        }).catch(function () {
+          err.textContent = "提交没成功，请再试一次。";
+          err.style.display = "block";
+          btn.disabled = false; btn.textContent = "捐出这个码";
+        });
+      });
+
+      document.getElementById("refreshBtn").addEventListener("click", function () { fetchState(); });
+    </script>
+  </body>
+</html>
