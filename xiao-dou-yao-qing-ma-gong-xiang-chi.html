@@ -226,6 +226,20 @@
       .howto li { margin: 7px 0; }
       .howto b { color: var(--ink); }
       .ledger .acct { color: var(--ink-faint); font-size: 12.5px; }
+
+      /* 未返码公示 */
+      .defaulter-card h2 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .defaulter-card.has-defaulters { border: 1.5px solid var(--red); }
+      .defaulter-card.has-defaulters h2 { color: var(--red); }
+      .defaulter-list { list-style: none; margin: 6px 0 0; padding: 0; }
+      .defaulter-list li {
+        display: flex; gap: 12px; padding: 12px 12px; align-items: baseline;
+        background: var(--red-soft); border-radius: 10px; margin-top: 8px;
+      }
+      .defaulter-list .who { font-weight: 700; }
+      .defaulter-list .acct { color: var(--ink-soft); font-size: 13px; }
+      .defaulter-list .what { color: var(--red); font-size: 13.5px; font-weight: 600; }
+      .defaulter-list .when { margin-left: auto; color: var(--ink-faint); font-size: 12.5px; flex: none; font-variant-numeric: tabular-nums; }
     </style>
   </head>
   <body>
@@ -266,6 +280,14 @@
         <div id="actionArea"></div>
       </section>
 
+      <!-- 未返码公示 -->
+      <section class="card defaulter-card" id="defaulterCard">
+        <h2>未返码公示 <span class="badge red" id="defaulterCount" style="display:none"></span></h2>
+        <p class="hint">领码后 15 分钟内没有返码的人，昵称和小红书账号会挂在这里，所有人都能看到。领码前先想清楚：拿了码，就要在 15 分钟内用完并返码。</p>
+        <ul class="defaulter-list" id="defaulterList"></ul>
+        <div class="empty-note" id="defaulterEmpty">正在读取…</div>
+      </section>
+
       <!-- 怎么用 -->
       <section class="card">
         <h2>怎么用 · 返码方法</h2>
@@ -275,7 +297,7 @@
           <li>领到邀请码后，打开<b>小豆 App</b>，把邀请码填进去，完成注册。</li>
           <li>进入小豆页面后，点击<b>豆包头像</b>，进入<b>右上角的设置</b>。</li>
           <li>在设置里打开<b>「邀请好友体验小豆」</b>，那里有你自己的邀请码。</li>
-          <li>回到本页，把你的新邀请码填进返码框，点<b>「返码」</b>，这一棒就完成了。记得在领码后 30 分钟内做完。</li>
+          <li>回到本页，把你的新邀请码填进返码框，点<b>「返码」</b>，这一棒就完成了。记得在领码后 15 分钟内做完。</li>
         </ol>
       </section>
 
@@ -303,7 +325,7 @@
           <label class="flabel" for="donateAcct">你的小红书账号</label>
           <input class="field" id="donateAcct" maxlength="40" placeholder="你的小红书号" autocomplete="off" />
           <label class="flabel" for="donateCode">你要捐的邀请码</label>
-          <input class="field" id="donateCode" maxlength="40" placeholder="输入邀请码" autocomplete="off" />
+          <input class="field" id="donateCode" maxlength="6" placeholder="6位字母和数字" autocomplete="off" style="text-transform:uppercase" />
           <div class="err" id="donateErr"></div>
           <div class="ok-note" id="donateOk"></div>
           <button class="btn" type="submit" id="donateBtn">捐出这个码</button>
@@ -318,9 +340,9 @@
           <li>第一次要先提交申请，站长审批<b>通过后进入白名单，长期有效</b>，以后领码不用再审批；没通过的不能领码。</li>
           <li>被站长<b>拉黑</b>的人不能领码，也不能提交申请；取消拉黑后恢复成普通访客，要重新提交申请进白名单。</li>
           <li>白名单里的人领码<b>先到先得</b>：池子里有码时，提交后按表格里的提交时间确认，最早提交的人领走，确认前谁都看不到码，确认一般在 2 分钟内；审批通过只给领码资格，通过后要再提交一次信息才能领码。</li>
-          <li>池子里同一时间只有一个码在接力，领走后持有人独占，其他人只能看到进度、看不到码，要等 TA 返码或超时回池后才能再提交领码。</li>
-          <li>领码后请在 <b>30 分钟</b>内完成注册，并把你账号里新生成的邀请码通过本页返还；超时码会自动回到池子。</li>
-          <li>超时未返码会被公开标记为跑单，昵称会留在接力记录里。</li>
+          <li>池子里同一时间只有一个码在接力，领走后持有人独占，其他人只能看到进度、看不到码，要等 TA 返码后才能再提交领码；TA 超时没返码，这个码直接作废，池子要等新码上架才能继续。</li>
+          <li>领码后请在 <b>15 分钟</b>内完成注册，并把你账号里新生成的邀请码通过本页返还；超时没返码，领走的码直接作废、不再回池，池子回到等待新码上架，等有人捐新码再继续。</li>
+          <li>超时未返码会被公开标记为跑单：昵称和小红书账号会挂到本页「未返码公示」区，接力记录里也会留标记；领走的码同时作废，不能再给下一个人领。</li>
           <li>返还的必须是<b>新码</b>：你领走的那个码用完就失效了，传下去的是你新拿到的。</li>
         </ul>
       </section>
@@ -341,7 +363,7 @@
       var F_ACCT = "entry.790995400";
       var F_CODE = "entry.995112940";
       var F_NOTE = "entry.201938033";
-      var TIMEOUT_MS = 30 * 60 * 1000;
+      var TIMEOUT_MS = 15 * 60 * 1000;
       var POLL_MS = 15000;
 
       var state = {
@@ -439,7 +461,7 @@
            NOT reserve a code; several applications can queue at once.
          - whitelisted: a claim attempt. If no one is using a code and the
            pool has one, the first submitter (sheet order = submit order)
-           becomes the holder immediately and the 30-minute clock starts
+           becomes the holder immediately and the 15-minute clock starts
            from this 领码 row's timestamp. If a code is busy or the pool
            is empty, the attempt holds nothing — they must submit again
            after the holder finishes or times out. */
@@ -548,6 +570,77 @@
         return !!(cur && cur.since && (Date.now() - cur.since.getTime() > TIMEOUT_MS));
       }
 
+      /* ---------- 未返码名单 ----------
+         Walk the sheet like derive(), but with timeout voiding: when a
+         holder's 15 minutes run out (judged against the next row's
+         timestamp, or against now for the latest holder), the holder is
+         recorded as a defaulter and their code is void — it never goes
+         back into the pool, and the walk frees the slot so a later
+         donation + claim starts a new segment. A 返码 row always clears
+         the current holder first (same rule as derive / the ledger: a
+         return, even a late one, counts as done, not 跑单). One entry
+         per person, keeping their latest default. */
+      function collectDefaulters(rows) {
+        var whitelist = {}, blacklist = {}, available = [], current = null,
+            defMap = {}, defOrder = [], i, r, key, idx;
+        function markDefaulter(cur) {
+          var k = wlKey(cur.nick, cur.acct);
+          if (!defMap[k]) defOrder.push(k);
+          defMap[k] = { nick: cur.nick, acct: cur.acct, since: cur.since };
+        }
+        function voidIfOverdue(at) {
+          if (current && current.since && at && at.getTime() - current.since.getTime() > TIMEOUT_MS) {
+            markDefaulter(current);
+            current = null;             // code void: NOT returned to available
+          }
+        }
+        for (i = 0; i < rows.length; i++) {
+          r = rows[i];
+          if (r.op !== "返码") voidIfOverdue(r.ts);
+          if (r.op === "捐码") {
+            if (r.code) available.push(r.code);
+          } else if (r.op === "领码") {
+            key = wlKey(r.nick, r.acct);
+            if (blacklist[key]) {
+              // blocked: nothing
+            } else if (whitelist[key]) {
+              if (!current && available.length) {
+                var code = null;
+                if (r.code) {
+                  idx = available.indexOf(r.code);
+                  if (idx >= 0) { available.splice(idx, 1); code = r.code; }
+                }
+                if (!code) code = available.shift();
+                current = { nick: r.nick, acct: r.acct, code: code, since: r.ts };
+              }
+            }
+            // not whitelisted: a whitelist application, never a holder
+          } else if (r.op === "通过") {
+            whitelist[wlKey(r.nick, r.acct)] = true;
+          } else if (r.op === "不通过") {
+            whitelist[wlKey(r.nick, r.acct)] = false;
+          } else if (r.op === "拉黑") {
+            key = wlKey(r.nick, r.acct);
+            blacklist[key] = true;
+            whitelist[key] = false;
+          } else if (r.op === "取消拉黑") {
+            blacklist[wlKey(r.nick, r.acct)] = false;
+          } else if (r.op === "取消白名单") {
+            whitelist[wlKey(r.nick, r.acct)] = false;
+          } else if (r.op === "返码") {
+            if (current) current = null;
+            if (r.code) available.push(r.code);
+          }
+        }
+        voidIfOverdue(new Date());
+        var out = defOrder.map(function (k) { return defMap[k]; });
+        out.sort(function (a, b) {
+          var ta = a.since ? a.since.getTime() : 0, tb = b.since ? b.since.getTime() : 0;
+          return tb - ta;               // most recent first
+        });
+        return out;
+      }
+
       function copySlot(o) {
         if (!o) return null;
         return { nick: o.nick, acct: o.acct, code: o.code, since: o.since, row: o.row, mine: !!o.mine, syncing: !!o.syncing };
@@ -644,16 +737,30 @@
             if (!mc.code && eff.current.code) mc.code = eff.current.code;
           }
         }
-        // Holder past 30 minutes: the code automatically returns to the pool.
+        // Holder past 15 minutes without returning a code: the code is
+        // void — it does NOT go back into the pool and can never be
+        // claimed again. The holder is publicly marked 跑单 in the
+        // ledger (row status "timeout"), and the pool falls back to
+        // "waiting for a new code" until someone donates a fresh one.
         if (eff.current && isOverdue(eff.current)) {
           var co = eff.current;
           if (co.row) co.row._status = "timeout";
           eff.timedOut = co;
-          if (co.code && eff.available.indexOf(co.code) < 0) eff.available.push(co.code);
           eff.current = null;
         }
         return eff;
       }
+
+      /* ---------- invite code format ----------
+         小豆邀请码是 6 位字母和数字：只接受 6 位字母数字，
+         提交前统一转大写；格式不对不提交。 */
+      function normalizeInviteCode(v) {
+        return String(v == null ? "" : v).trim().toUpperCase();
+      }
+      function isValidInviteCode(v) {
+        return /^[A-Z0-9]{6}$/.test(v);
+      }
+      var INVITE_CODE_ERR = "邀请码是6位字母和数字";
 
       /* ---------- form submission ---------- */
       function submitForm(op, nick, acct, code, note) {
@@ -747,7 +854,8 @@
           '<div class="err" id="claimErr"></div>' +
           '<button class="btn" type="submit" id="claimBtn">提交</button>' +
         '</form>' +
-        '<p class="hint" style="margin:12px 0 0">还没进白名单：提交后是申请，等站长审批，通过后要回来再提交一次才领码。已在白名单：提交后先确认先后（一般 2 分钟内），按提交时间你是最早的，码才显示给你。</p>';
+        '<p class="hint" style="margin:12px 0 0">还没进白名单：提交后是申请，等站长审批，通过后要回来再提交一次才领码。已在白名单：提交后先确认先后（一般 2 分钟内），按提交时间你是最早的，码才显示给你。</p>' +
+        '<p class="hint" style="margin:8px 0 0;color:var(--red);font-weight:700">领到码后只有 15 分钟：请提前打开小豆 App 准备好，领到立刻注册、马上返码，后面还有人排队等着用。领码后 15 分钟内没返码，码直接作废、不会再给下一个人，你的小红书号和昵称会被挂到本页「未返码公示」里公开显示，所有人都能看到，你还会被公开标记跑单，池子要等新码上架。领码前先想清楚，能在 15 分钟内返码再领。</p>';
       }
 
       function queueHTML(apps) {
@@ -761,6 +869,7 @@
       function useTipHTML() {
         return '' +
         '<div class="tip-box">' +
+          '<p style="margin:0 0 8px;color:var(--red)"><b>请尽快完成，后面还有人排队等着用。</b>你只有 15 分钟（看上方倒计时），领码后 15 分钟内没返码，码直接作废、不会回池，你的小红书号和昵称会被挂到本页「未返码公示」里公开显示，所有人都能看到，你还会被公开标记跑单，池子要等新码上架才能继续。</p>' +
           '<b>接下来这样做</b>' +
           '<ol>' +
             '<li>把上面的邀请码填入<b>小豆 App</b>，完成注册。</li>' +
@@ -775,7 +884,7 @@
         return '' +
         '<form id="returnForm">' +
           '<label class="flabel" for="returnCode">你注册后新拿到的邀请码</label>' +
-          '<input class="field" id="returnCode" maxlength="40" placeholder="输入你账号里新生成的邀请码" autocomplete="off" />' +
+          '<input class="field" id="returnCode" maxlength="6" placeholder="6位字母和数字" autocomplete="off" style="text-transform:uppercase" />' +
           '<div class="err" id="returnErr"></div>' +
           '<button class="btn" type="submit" id="returnBtn">返码，完成这一棒</button>' +
         '</form>';
@@ -793,7 +902,7 @@
         if (!cur.since) return '<p class="status-desc" style="margin-top:12px">计时开始时间同步中…</p>';
         return '' +
         '<div class="timer-row"><span class="timer-num" id="timerNum">--:--</span>' +
-        '<span class="timer-cap" id="timerCap">剩余时间（领码后 30 分钟内返码）</span></div>' +
+        '<span class="timer-cap" id="timerCap">剩余时间（领码后 15 分钟内返码）</span></div>' +
         '<div class="bar" id="timerBar"><i style="width:100%"></i></div>';
       }
 
@@ -815,6 +924,26 @@
         var action = document.getElementById("actionArea");
         var banner = document.getElementById("banner");
 
+        // Preserve what the visitor already typed into the claim form:
+        // the 15s auto-sync re-renders status/records, but it must NOT
+        // wipe the account / nickname being filled in. Capture the live
+        // input values (and focus) before any innerHTML rebuild below,
+        // and restore them at the end of render if the form is shown again.
+        var savedClaim = null;
+        (function () {
+          var aEl = document.getElementById("claimAcct");
+          var nEl = document.getElementById("claimNick");
+          if (!aEl && !nEl) return;
+          var fEl = document.getElementById("claimFollow");
+          var activeId = document.activeElement ? document.activeElement.id : "";
+          savedClaim = {
+            acct: aEl ? aEl.value : "",
+            nick: nEl ? nEl.value : "",
+            followed: fEl ? !!fEl.checked : false,
+            activeId: (activeId === "claimAcct" || activeId === "claimNick" || activeId === "claimFollow") ? activeId : ""
+          };
+        })();
+
         // banner
         if (state.banner) {
           banner.className = "banner show " + state.banner.kind;
@@ -827,7 +956,7 @@
           banner.textContent = "你已被拉黑，无法领码。取消拉黑后，你是普通访客，需要重新提交申请进白名单。";
         } else if (state.myCodeGone) {
           banner.className = "banner show bad";
-          banner.textContent = "码已经没了：按提交时间，这个码给了比你更早提交的人，你没领到，也看不到码。等 TA 返码或超时回池后，再提交一次领码。";
+          banner.textContent = "码已经没了：按提交时间，这个码给了比你更早提交的人，你没领到，也看不到码。等 TA 返码后，再提交一次领码；如果 TA 超时没返码，这个码会作废，池子要等新码上架。";
         } else if (state.myRejected) {
           banner.className = "banner show bad";
           banner.textContent = "申请未通过：站长没有批准你加入白名单。可以确认已关注并私聊站长表明小红书号和昵称后，重新提交申请。";
@@ -849,7 +978,7 @@
               '<p class="status-desc">马上就好。</p>';
           action.innerHTML = "";
           setSteps("idle");
-          renderStats(null); renderLedger();
+          renderStats(null); renderLedger(); renderDefaulters();
           return;
         }
 
@@ -860,7 +989,7 @@
         var myAppPending = false, ai;
         for (ai = 0; ai < apps.length; ai++) if (apps[ai].mine) myAppPending = true;
 
-        renderStats(d); renderLedger();
+        renderStats(d); renderLedger(); renderDefaulters();
 
         if (d.myConfirming) {
           body.innerHTML = '<span class="badge amber">确认中</span>' +
@@ -873,7 +1002,7 @@
           var verified = !!(state.myClaim && state.myClaim.nick === cur.nick && state.myClaim.acct === cur.acct);
           body.innerHTML = '<span class="badge amber">使用中</span>' +
             '<div class="status-big">码在「' + esc(cur.nick) + '」手里使用中</div>' +
-            '<p class="status-desc">TA 是白名单成员，提交最快，先领到了码。TA 返码或超时回池后，其他白名单成员才能再提交领码。码只对 TA 本人可见，30 分钟从领码时算起。</p>' +
+            '<p class="status-desc">TA 是白名单成员，提交最快，先领到了码。TA 返码后，其他白名单成员才能再提交领码；TA 要是超时没返码，这个码直接作废，池子回到等待新码上架。码只对 TA 本人可见，15 分钟从领码时算起。</p>' +
             timerHTML(cur) +
             queueHTML(apps);
           setSteps("inuse");
@@ -886,7 +1015,7 @@
             action.innerHTML = '<p class="hint" style="margin-top:14px">码正在同步，稍等几秒刷新一次。</p>';
           } else {
             action.innerHTML = holderFormHTML() +
-              '<p class="hint" style="margin-top:14px">现在领不了码：等上一位处理完（返码或超时回池），白名单成员再提交信息领码。还没进白名单的，可以等池子空闲时在本页提交申请。</p>';
+              '<p class="hint" style="margin-top:14px">现在领不了码：等上一位返码，白名单成员再提交信息领码；上一位要是超时没返码，码会作废，要等新码上架。还没进白名单的，可以等池子空闲时在本页提交申请。</p>';
             bindHolder(cur);
           }
         } else if (hasAvailable) {
@@ -895,7 +1024,7 @@
           else if (state.myApproved) setSteps("claim");
           else setSteps("apply");
           var notes = [];
-          if (d.timedOut) notes.push('上一位「' + esc(d.timedOut.nick) + '」领码后超时未返码，已标记跑单，码已自动回到池子。');
+          if (d.timedOut) notes.push('上一位「' + esc(d.timedOut.nick) + '」领码后超时未返码，已公开标记跑单，TA 领走的码已作废、不再回池；现在池子里的是新上架的码。');
           if (d.lastRejected && !state.myRejected) notes.push('最近一条申请未通过：申请人「' + esc(d.lastRejected.nick) + '」（小红书 ' + esc(d.lastRejected.acct) + '）。');
           if (state.myRejected) notes.push("你刚才的申请未通过，可以重新提交申请。");
           body.innerHTML = '<span class="badge green">有码可领</span>' +
@@ -907,7 +1036,7 @@
         } else {
           if (myAppPending) setSteps("pending"); else if (state.myApproved) setSteps("claim"); else setSteps("idle");
           var extra = "";
-          if (d.timedOut) extra = '<br>上一位「' + esc(d.timedOut.nick) + '」超时未返码，码已用完，等新码上架。';
+          if (d.timedOut) extra = '<br>上一位「' + esc(d.timedOut.nick) + '」超时未返码，已公开标记跑单，TA 领走的码已作废、不再回池，池子等新码上架。';
           if (d.lastRejected && !state.myRejected) extra += '<br>最近一条申请未通过，申请人「' + esc(d.lastRejected.nick) + '」。';
           body.innerHTML = '<span class="badge gray">等待新码上架</span>' +
             '<svg class="sprout" width="54" height="54" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 42V26" stroke="var(--green)" stroke-width="3" stroke-linecap="round"/><path d="M24 26C24 18 18 12 8 12c0 10 6 14 16 14Z" fill="var(--green-soft)" stroke="var(--green)" stroke-width="2.5"/><path d="M24 22c0-8 6-12 16-12 0 10-6 12-16 12Z" fill="var(--green-soft)" stroke="var(--green)" stroke-width="2.5"/></svg>' +
@@ -917,12 +1046,55 @@
           action.innerHTML = claimFormHTML();
           bindClaim();
         }
+
+        // Restore the claim form inputs captured at the top, so an
+        // auto-sync never clears an account / nickname mid-typing.
+        if (savedClaim) {
+          var rAcct = document.getElementById("claimAcct");
+          var rNick = document.getElementById("claimNick");
+          var rFollow = document.getElementById("claimFollow");
+          if (rAcct && savedClaim.acct) rAcct.value = savedClaim.acct;
+          if (rNick && savedClaim.nick) rNick.value = savedClaim.nick;
+          if (rFollow && savedClaim.followed) rFollow.checked = true;
+          if (savedClaim.activeId) {
+            var rActive = document.getElementById(savedClaim.activeId);
+            if (rActive && rActive.focus) {
+              rActive.focus();
+              if (rActive.setSelectionRange && typeof rActive.value === "string") {
+                try { rActive.setSelectionRange(rActive.value.length, rActive.value.length); } catch (e) {}
+              }
+            }
+          }
+        }
       }
 
       function renderStats(d) {
         document.getElementById("statDone").textContent = d ? d.completed : "–";
         document.getElementById("statDonate").textContent = d ? d.donated : "–";
         document.getElementById("statClaims").textContent = d ? d.claims : "–";
+      }
+
+      function renderDefaulters() {
+        var ul = document.getElementById("defaulterList");
+        var empty = document.getElementById("defaulterEmpty");
+        var card = document.getElementById("defaulterCard");
+        var count = document.getElementById("defaulterCount");
+        if (!ul || !card) return;
+        var defs = state.loaded ? collectDefaulters(state.rows) : [];
+        card.classList.toggle("has-defaulters", defs.length > 0);
+        if (count) {
+          count.style.display = defs.length ? "" : "none";
+          count.textContent = defs.length ? (defs.length + " 人未返码") : "";
+        }
+        ul.innerHTML = defs.map(function (x) {
+          return '<li><span class="badge red">跑单</span>' +
+            '<span><span class="who">' + esc(x.nick || "匿名") + '</span>' +
+            ' <span class="acct">小红书 ' + esc(x.acct || "—") + '</span>' +
+            ' <span class="what">领码后超时未返码</span></span>' +
+            '<span class="when">' + esc(fmtTime(x.since, "")) + ' 领码</span></li>';
+        }).join("");
+        empty.style.display = defs.length ? "none" : "block";
+        empty.textContent = state.loaded ? "暂无未返码记录，大家都很守信用。" : "正在读取…";
       }
 
       function renderLedger() {
@@ -978,12 +1150,12 @@
         if (remain >= 0) {
           var s = Math.ceil(remain / 1000);
           num.textContent = String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
-          if (cap) cap.textContent = "剩余时间（领码后 30 分钟内返码）";
+          if (cap) cap.textContent = "剩余时间（领码后 15 分钟内返码）";
           if (bar) { bar.classList.remove("over"); bar.firstElementChild.style.width = Math.max(0, remain / TIMEOUT_MS * 100) + "%"; }
         } else {
           var os = Math.floor(-remain / 1000);
           num.textContent = "+" + String(Math.floor(os / 60)).padStart(2, "0") + ":" + String(os % 60).padStart(2, "0");
-          if (cap) cap.textContent = "已超时，码已自动回到池子";
+          if (cap) cap.textContent = "已超时，码已作废，池子等新码上架";
           if (bar) { bar.classList.add("over"); bar.firstElementChild.style.width = "100%"; }
         }
       }
@@ -1060,7 +1232,7 @@
             // whitelisted claim — first come, first served
             state.myApproved = { nick: nick, acct: acct };
             if (d.current) {
-              state.banner = { kind: "warn", text: "码正在「" + d.current.nick + "」手里使用中。等 TA 返码或超时回池后，再提交一次领码。" };
+              state.banner = { kind: "warn", text: "码正在「" + d.current.nick + "」手里使用中。等 TA 返码后，再提交一次领码；TA 要是超时没返码，码会作废，要等新码上架。" };
               render();
               return;
             }
@@ -1075,7 +1247,7 @@
               state.myReturned = false;
               state.myRejected = null;
               state.myCodeGone = null;
-              state.banner = { kind: "warn", text: "已提交，正在确认先到先得…码先不显示：等你的提交同步进表格（一般 2 分钟内），按提交时间确认你是这个码最早提交的人，码才会出现在这里；如果有人更早提交，你会看到“码已经没了”。" };
+              state.banner = { kind: "warn", text: "已提交，正在确认先到先得…码先不显示：等你的提交同步进表格（一般 2 分钟内），按提交时间确认你是这个码最早提交的人，码才会出现在这里；如果有人更早提交，你会看到“码已经没了”。先把小豆 App 打开准备好：码一出现只有 15 分钟，领到立刻注册、马上返码，后面还有人排队等着用。" };
               render();
               setTimeout(fetchState, 5000);
               setTimeout(fetchState, 12000);
@@ -1092,12 +1264,14 @@
         if (!form) return;
         form.addEventListener("submit", function (ev) {
           ev.preventDefault();
-          var code = document.getElementById("returnCode").value.trim();
+          var code = normalizeInviteCode(document.getElementById("returnCode").value);
+          document.getElementById("returnCode").value = code;
           var err = document.getElementById("returnErr");
           var btn = document.getElementById("returnBtn");
           err.style.display = "none";
           if (!code) { err.textContent = "把你注册后新拿到的邀请码填进来，这一棒才算完成。"; err.style.display = "block"; return; }
-          if (curCode && code === curCode) {
+          if (!isValidInviteCode(code)) { err.textContent = INVITE_CODE_ERR; err.style.display = "block"; return; }
+          if (curCode && code === normalizeInviteCode(curCode)) {
             err.textContent = "这个是刚才领走的旧码，已经失效了。要填的是你注册后账号里新生成的码。";
             err.style.display = "block"; return;
           }
@@ -1133,7 +1307,7 @@
             err.style.display = "block"; return;
           }
           state.myClaim = { nick: nick, acct: acct, code: cur.code, since: cur.since };
-          state.banner = { kind: "good", text: "发码完成！码只显示在你这台设备上。把码填进小豆 App，按下方步骤拿到你的新码，30 分钟内回来返码（从领码时算起）。" };
+          state.banner = { kind: "good", text: "发码完成！码只显示在你这台设备上。请尽快完成：把码填进小豆 App，按下方步骤拿到你的新码，15 分钟内回来返码（从领码时算起），后面还有人排队等着用；领码后 15 分钟内没返码，码会直接作废、不再回池，你的小红书号和昵称会被挂到本页「未返码公示」里公开显示，并公开标记跑单。" };
           render();
         });
       }
@@ -1161,7 +1335,8 @@
         ev.preventDefault();
         var nick = document.getElementById("donateNick").value.trim();
         var acct = document.getElementById("donateAcct").value.trim();
-        var code = document.getElementById("donateCode").value.trim();
+        var code = normalizeInviteCode(document.getElementById("donateCode").value);
+        document.getElementById("donateCode").value = code;
         var err = document.getElementById("donateErr");
         var ok = document.getElementById("donateOk");
         var btn = document.getElementById("donateBtn");
@@ -1169,6 +1344,7 @@
         if (!nick) { err.textContent = "填一下你的昵称，捐码会上接力记录。"; err.style.display = "block"; return; }
         if (!acct) { err.textContent = "填一下你的小红书账号（小红书号）。"; err.style.display = "block"; return; }
         if (!code) { err.textContent = "把要捐的邀请码填进来。"; err.style.display = "block"; return; }
+        if (!isValidInviteCode(code)) { err.textContent = INVITE_CODE_ERR; err.style.display = "block"; return; }
         btn.disabled = true; btn.textContent = "提交中…";
         submitForm("捐码", nick, acct, code, "网页捐码").then(function () {
           ok.textContent = "收到了，谢谢！表格同步后（约十几秒）这个码就会上架可申请。";
